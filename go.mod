@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/ghiac/bale-bot-api v6.1.0+incompatible
+	golang.org/x/net v0.10.0
 	gorm.io/driver/postgres v1.5.7
 	gorm.io/gorm v1.25.7
 )
