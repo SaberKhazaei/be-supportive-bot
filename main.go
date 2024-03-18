@@ -10,7 +10,7 @@ import (
 	"log"
 )
 
-const botToken = "1771038996:yy4kRET57XKJdmEsQH5At68RMpZ7t6DCxEH6OAmh"
+const BotToken = "1771038996:yy4kRET57XKJdmEsQH5At68RMpZ7t6DCxEH6OAmh"
 
 func main() {
 	// connect to postgres:
@@ -22,7 +22,7 @@ func main() {
 	database := model.NewDatabase(db)
 
 	// Bale bot:
-	bot, err := baleApi.NewBaleBotAPI(botToken)
+	bot, err := baleApi.NewBaleBotAPI(BotToken)
 	if err != nil {
 		log.Panic(err)
 	}

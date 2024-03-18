@@ -1,18 +1,22 @@
 package model
 
-import (
-	"time"
-)
+import "gorm.io/datatypes"
 
 type BaleBot struct {
 	ID                uint `json:"id" gorm:"primaryKey"`
-	Stat              string
-	PhoneNumber       int64
 	FirstName         string
 	LastName          string
-	NationalCode      int64
-	JobTitle          string
+	PhoneNumber       string
+	NationalCode      string
+	Password          string
+	Stat              string
+	Captcha           string
+	JobId             string
 	VerificationToken string
-	VerificationCode  int64
-	BirthDate         time.Time
+	VerificationCode  string
+	BirthDate         string
+	SiteCookie        string
+	JobIdLoginCode    string
+	RepresentedChild  datatypes.JSON
+	CurrentChildInfo  datatypes.JSON
 }

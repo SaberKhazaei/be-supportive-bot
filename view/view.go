@@ -8,7 +8,13 @@ import (
 func ListOfServices(bot *baleApi.BotAPI, id int64) error {
 	buttons := baleApi.NewInlineKeyboardMarkup(
 		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("ثبت نام/ورود", "login"),
+			baleApi.NewInlineKeyboardButtonData("ثبت نام", "register"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("ورود", "login"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("رمز عبور را فراموش کردم!", "reset"),
 		),
 		baleApi.NewInlineKeyboardRow(
 			baleApi.NewInlineKeyboardButtonData("سرپرستی فرزند جدید", "newChild"),
@@ -31,8 +37,112 @@ func ListOfServices(bot *baleApi.BotAPI, id int64) error {
 	return nil
 }
 
+func SendChoseChildButton(buttons []string, bot *baleApi.BotAPI, id int64) error {
+	message := baleApi.NewMessage(id, "گزینش فرزندان برای حامی شدن:")
+	//rows := baleApi.NewInlineKeyboardMarkup()
+	//for i := 0; i < len(buttons); i++ {
+	//	newRow := baleApi.NewInlineKeyboardRow(
+	//		baleApi.NewInlineKeyboardButtonData(buttons[i], fmt.Sprintf("ChoosingChild %v", buttons[0])),
+	//	)
+	//	rows.InlineKeyboard[i] = newRow
+	//}
+	message.ReplyMarkup = baleApi.NewInlineKeyboardMarkup(
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData(buttons[0], fmt.Sprintf("ChoosingChild %v", buttons[0])),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData(buttons[1], fmt.Sprintf("ChoosingChild %v", buttons[1])),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData(buttons[2], fmt.Sprintf("ChoosingChild %v", buttons[2])),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData(buttons[3], fmt.Sprintf("ChoosingChild %v", buttons[3])),
+		),
+		//baleApi.NewInlineKeyboardRow(
+		//	baleApi.NewInlineKeyboardButtonData(buttons[4], fmt.Sprintf("ChoosingChild %v", buttons[4])),
+		//),
+		//baleApi.NewInlineKeyboardRow(
+		//	baleApi.NewInlineKeyboardButtonData(buttons[5], fmt.Sprintf("ChoosingChild %v", buttons[5])),
+		//),
+		//baleApi.NewInlineKeyboardRow(
+		//	baleApi.NewInlineKeyboardButtonData(buttons[6], fmt.Sprintf("ChoosingChild %v", buttons[6])),
+		//),
+		//baleApi.NewInlineKeyboardRow(
+		//	baleApi.NewInlineKeyboardButtonData(buttons[7], fmt.Sprintf("ChoosingChild %v", buttons[7])),
+		//),
+	)
+
+	// Send the message
+	if _, err := bot.Send(message); err != nil {
+		return fmt.Errorf("error in send list of services button with id: %v, error: %v", id, err)
+	}
+	return nil
+}
+
+func SendChoseChildPayment(bot *baleApi.BotAPI, id int64) error {
+	message := baleApi.NewMessage(id, "مبلغ پرداختی برای هر فرزند :")
+
+	message.ReplyMarkup = baleApi.NewInlineKeyboardMarkup(
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("100000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "100000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("200000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "200000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("300000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "300000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("400000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "400000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("500000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "500000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("600000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "600000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("700000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "700000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("800000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "800000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("900000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "900000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("1000000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "1000000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("1500000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "1500000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("2000000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "2000000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("2500000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "2500000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("5000000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "5000000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("7500000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "7500000")),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("10000000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "10000000")),
+		),
+	)
+
+	// Send the message
+	if _, err := bot.Send(message); err != nil {
+		return fmt.Errorf("error in send list of services button with id: %v, error: %v", id, err)
+	}
+	return nil
+}
+
 func EnterNumber(bot *baleApi.BotAPI, id int64) error {
-	message := baleApi.NewMessage(id, "شماره همراه خود را وارد نمایید :")
+	message := baleApi.NewMessage(id, "شماره همراه خود را وارد نمایید")
 	// Send the message
 	if _, err := bot.Send(message); err != nil {
 		return fmt.Errorf("error in send enter your number message with id: %v, error: %v", id, err)
@@ -42,7 +152,7 @@ func EnterNumber(bot *baleApi.BotAPI, id int64) error {
 
 func EnterFirstName(bot *baleApi.BotAPI, id int64) error {
 	// Send the message.
-	message := baleApi.NewMessage(id, "نام خود را وارد نمایید :")
+	message := baleApi.NewMessage(id, "نام خود را وارد نمایید")
 	if _, err := bot.Send(message); err != nil {
 		return fmt.Errorf("error in send enter your first name with id: %v, error: %v", id, err)
 	}
@@ -51,7 +161,7 @@ func EnterFirstName(bot *baleApi.BotAPI, id int64) error {
 
 func EnterLastName(bot *baleApi.BotAPI, id int64) error {
 	// Send the message.
-	message := baleApi.NewMessage(id, "نام خانوادگی خود را وارد نمایید :")
+	message := baleApi.NewMessage(id, "نام خانوادگی خود را وارد نمایید")
 	if _, err := bot.Send(message); err != nil {
 		return fmt.Errorf("error in send enter your last name message with id: %v, error: %v", id, err)
 	}
@@ -60,9 +170,18 @@ func EnterLastName(bot *baleApi.BotAPI, id int64) error {
 
 func EnterNativeCode(bot *baleApi.BotAPI, id int64) error {
 	// Send the message.
-	message := baleApi.NewMessage(id, "کد ملی خود را وارد نمایید :")
+	message := baleApi.NewMessage(id, "کد ملی خود را وارد نمایید")
 	if _, err := bot.Send(message); err != nil {
 		return fmt.Errorf("error in send enter your National Code message with id: %v, error: %v", id, err)
+	}
+	return nil
+}
+
+func EnterPassword(bot *baleApi.BotAPI, id int64) error {
+	// Send the message.
+	message := baleApi.NewMessage(id, "پسورد خود را وارد نمایید")
+	if _, err := bot.Send(message); err != nil {
+		return fmt.Errorf("error in send enter your password message with id: %v, error: %v", id, err)
 	}
 	return nil
 }

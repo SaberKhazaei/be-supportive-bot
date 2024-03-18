@@ -3,7 +3,6 @@ package model
 import (
 	"fmt"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Database struct {
@@ -49,6 +48,14 @@ func (db Database) AddUser(userID int64) error {
 	return nil
 }
 
+func (db Database) DeleteUser(userID int64) error {
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", userID).Delete(&BaleBot{}).Error
+	if err != nil {
+		return fmt.Errorf("error in delete user, error: %v", err)
+	}
+	return nil
+}
+
 func (db Database) GetUserState(userID int64) (string, error) {
 	var user BaleBot
 	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Find(&user).Error
@@ -66,15 +73,48 @@ func (db Database) UpdateStat(userID int64, newStat string) error {
 	return nil
 }
 
-func (db Database) SetUserPhoneNumber(userID int64, userNumber int64) error {
-	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"phone_number": userNumber, "stat": "enterVerificationCode"}).Error
+func (db Database) SetUserPhoneNumber(userID int64, userNumber string, newStat string) error {
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"phone_number": userNumber, "stat": newStat}).Error
 	if err != nil {
 		return fmt.Errorf("error in set user number, error: %v", err)
 	}
 	return nil
 }
 
-func (db Database) SetUserEnteredCodeByPhoneMessage(userID int64, enteredCode int64) error {
+func (db Database) SetUserPassword(userID int64, password string, newState string) error {
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"password": password, "stat": newState}).Error
+	if err != nil {
+		return fmt.Errorf("error in set user password, error: %v", err)
+	}
+	return nil
+}
+
+func (db Database) SetUserCaptcha(userID int64, captcha string, newState string) error {
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"captcha": captcha, "stat": newState}).Error
+	if err != nil {
+		return fmt.Errorf("error in set user password, error: %v", err)
+	}
+	return nil
+}
+
+func (db Database) SetUserSiteCookie(userID int64, cookie string) error {
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"site_cookie": cookie}).Error
+	if err != nil {
+		return fmt.Errorf("error in set user password, error: %v", err)
+	}
+	return nil
+}
+
+func (db Database) GetUserSiteCookieAndVerificationToken(userID int64) (string, string, error) {
+	var user BaleBot
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Find(&user).Error
+	if err != nil {
+		return "", "", fmt.Errorf("error in get user site cookie, error: %v", err)
+	}
+	return user.SiteCookie, user.VerificationToken, nil
+}
+
+func (db Database) SetUserEnteredCodeByPhoneMessage(userID int64, enteredCode string) error {
 	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"verification_code": enteredCode, "stat": "enterFirstName"}).Error
 	if err != nil {
 		return fmt.Errorf("error in set user number, error: %v", err)
@@ -98,15 +138,15 @@ func (db Database) SetUserLastName(userID int64, lastName string) error {
 	return nil
 }
 
-func (db Database) SetUserNationalCode(userID int64, userNumber int64) error {
-	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"national_code": userNumber, "stat": "enterBirthDay"}).Error
+func (db Database) SetUserNationalCode(userID int64, userNumber string, newState string) error {
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"national_code": userNumber, "stat": newState}).Error
 	if err != nil {
 		return fmt.Errorf("error in set national code, error: %v", err)
 	}
 	return nil
 }
 
-func (db Database) SetUserBirthDate(userID int64, BirthDate time.Time) error {
+func (db Database) SetUserBirthDate(userID int64, BirthDate string) error {
 	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"birth_date": BirthDate, "stat": "enterJobTitle"}).Error
 	if err != nil {
 		return fmt.Errorf("error in set birth date, error: %v", err)
@@ -114,16 +154,24 @@ func (db Database) SetUserBirthDate(userID int64, BirthDate time.Time) error {
 	return nil
 }
 
-func (db Database) SetUserJobTitle(userID int64, jobTitle string) error {
-	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"job_title": jobTitle, "stat": "login"}).Error
+func (db Database) SetUserJobId(userID int64, jobId string) error {
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"job_id": jobId, "stat": "login"}).Error
 	if err != nil {
 		return fmt.Errorf("error in set job title, error: %v", err)
 	}
 	return nil
 }
 
-func (db Database) SetUserVerificationToken(requestVerificationToken string, userID int64) error {
-	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"verification_token": requestVerificationToken}).Error
+func (db Database) SetJobIdLoginCode(userID int64, jobId string) error {
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"job_id_login_code": jobId}).Error
+	if err != nil {
+		return fmt.Errorf("error in set job id, error: %v", err)
+	}
+	return nil
+}
+
+func (db Database) SetUserVerificationToken(requestVerificationToken string, userID int64, siteCookie string) error {
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"verification_token": requestVerificationToken, "site_cookie": siteCookie}).Error
 	if err != nil {
 		return fmt.Errorf("error in set verification token, error: %v", err)
 	}
@@ -137,4 +185,38 @@ func (db Database) GetUserVerificationToken(userID int64) (string, error) {
 		return "", fmt.Errorf("error in set verification token, error: %v", err)
 	}
 	return user.VerificationToken, nil
+}
+
+func (db Database) SetRepresentedChildForUser(userID int64, RepresentedChild []byte) error {
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"represented_child": RepresentedChild}).Error
+	if err != nil {
+		return fmt.Errorf("error in set Represented Child, error: %v", err)
+	}
+	return nil
+}
+
+func (db Database) GetRepresentedChildForUser(userID int64) ([]byte, error) {
+	var user BaleBot
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Find(&user).Error
+	if err != nil {
+		return nil, fmt.Errorf("error in get Represented Child, error: %v", err)
+	}
+	return user.RepresentedChild, nil
+}
+
+func (db Database) SetCurrentChildForUser(userID int64, currentChild []byte) error {
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"current_child_info": currentChild}).Error
+	if err != nil {
+		return fmt.Errorf("error in set Represented Child, error: %v", err)
+	}
+	return nil
+}
+
+func (db Database) GetCurrentChildForUser(userID int64) ([]byte, error) {
+	var user BaleBot
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Find(&user).Error
+	if err != nil {
+		return nil, fmt.Errorf("error in get Represented Child, error: %v", err)
+	}
+	return user.CurrentChildInfo, nil
 }
