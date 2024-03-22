@@ -1,6 +1,9 @@
 package model
 
-import "gorm.io/datatypes"
+import (
+	"gorm.io/datatypes"
+	"time"
+)
 
 type BaleBot struct {
 	ID                uint `json:"id" gorm:"primaryKey"`
@@ -9,6 +12,7 @@ type BaleBot struct {
 	PhoneNumber       string
 	NationalCode      string
 	Password          string
+	EnteredTime       *time.Time
 	Stat              string
 	Captcha           string
 	JobId             string

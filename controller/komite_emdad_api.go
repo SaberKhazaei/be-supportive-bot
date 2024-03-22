@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-func CheckUserLoginKomiteEmdad(phoneNumber string, requestVerificationToken string) (bool, string, error) {
+func CheckUserLoginInKomiteEmdad(phoneNumber string, requestVerificationToken string) (bool, string, error) {
 	body := map[string]interface{}{
 		"PhoneNumber":                phoneNumber,
 		"__RequestVerificationToken": requestVerificationToken,
@@ -58,9 +58,9 @@ func CheckUserLoginKomiteEmdad(phoneNumber string, requestVerificationToken stri
 	return false, "", nil
 }
 
-func CheckVerificationCode(enteredCode string, verificationToken string) (bool, string, error) {
+func CheckVerificationCode(verificationCode string, verificationToken string) (bool, string, error) {
 	reqBody := map[string]interface{}{
-		"VerificationCode":           enteredCode,
+		"VerificationCode":           verificationCode,
 		"__RequestVerificationToken": verificationToken,
 		"X-Requested-With":           "XMLHttpRequest",
 	}
@@ -87,7 +87,6 @@ func CheckVerificationCode(enteredCode string, verificationToken string) (bool, 
 			return false, "", fmt.Errorf("error in unmarshalling the response body, error: %v", err.Error())
 		}
 
-		fmt.Printf("success value: %v \n", responseBody["success"].(bool))
 		if responseBody["success"].(bool) {
 			return true, responseBody["message"].(string), nil
 		} else {
@@ -216,7 +215,7 @@ func Registry() (bool, string, string, error) {
 	return false, "", siteCookie, nil
 }
 
-func SendUserInformation(firstName string, lastName string, codeMeli string, birthDate string, phoneNumber string, enteredCode string, verificationToken string, jobId string) (string, string, error) {
+func SendSupporterInformation(firstName string, lastName string, codeMeli string, birthDate string, phoneNumber string, enteredCode string, verificationToken string, jobId string) (string, string, error) {
 	var birthDay, birthMonth, birthYear int
 	birthInfo := strings.Split(birthDate, "-")
 	for k, v := range birthInfo {
@@ -280,10 +279,10 @@ func SendUserInformation(firstName string, lastName string, codeMeli string, bir
 			return "", "", fmt.Errorf("error in unmarshalling the response body, error: %v", err.Error())
 		}
 
-		fmt.Printf("User with phone number: %v get this message: %v\n", phoneNumber, responseBody["message"].(string))
+		//fmt.Printf("User with phone number: %v get this message: %v\n", phoneNumber, responseBody["message"].(string))
 		return responseBody["message"].(string), password, nil
 	} else {
-		fmt.Printf("User with phone number: %v give a html code", phoneNumber)
+		//fmt.Printf("User with phone number: %v give a html code", phoneNumber)
 		return "", password, nil
 	}
 }
@@ -324,11 +323,11 @@ func GetCaptcha(siteCookie string) ([]byte, string, error) {
 }
 
 func GetIdentity(NationalCode string, password string, CaptchaCode string, verificationCode string, cookie string) ([]byte, string, error) {
-	fmt.Printf("\npassword: %v \n", password)
-	fmt.Printf("\nCaptchaCode: %v \n", CaptchaCode)
-	fmt.Printf("\nverificationCode: %v \n", verificationCode)
-	fmt.Printf("\ncookie: %v \n", cookie)
-	fmt.Printf("\nNationalCode: %v \n", NationalCode)
+	//fmt.Printf("\npassword: %v \n", password)
+	//fmt.Printf("\nCaptchaCode: %v \n", CaptchaCode)
+	//fmt.Printf("\nverificationCode: %v \n", verificationCode)
+	//fmt.Printf("\ncookie: %v \n", cookie)
+	//fmt.Printf("\nNationalCode: %v \n", NationalCode)
 
 	encryptPassword, err := EncryptAES(password)
 	if err != nil {
@@ -344,10 +343,8 @@ func GetIdentity(NationalCode string, password string, CaptchaCode string, verif
 		"__RequestVerificationToken": []string{verificationCode},
 	}
 
-	//reqBody := data.Encode()
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("https://ekram.emdad.ir/Identity"), nil)
 	req.PostForm = data
-	//req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://localhost:5000/Identity"), bytes.NewBufferString(reqBody))
 	if err != nil {
 		return nil, "", err
 	}
@@ -355,22 +352,6 @@ func GetIdentity(NationalCode string, password string, CaptchaCode string, verif
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "*/*")
 	req.Header.Set("User-Agent", "curl/7.81.0")
-
-	//client := http.Client{
-	//	Transport: &http.Transport{
-	//		DisableCompression: true,
-	//	},
-	//}
-
-	//res, err := client.Do(req)
-	//if err != nil {
-	//	return nil, "", fmt.Errorf("Error in send get the token request, error: %v", err)
-	//}
-	//resCookie := res.Header.Get("Set-Cookie")
-	//body, err := io.ReadAll(res.Body)
-	//if err != nil {
-	//	return nil, "", fmt.Errorf("Error in read the response body, error: %v", err)
-	//}
 
 	args := []string{"-v", req.URL.String()}
 	for k, varr := range req.Header {
@@ -442,7 +423,6 @@ func GetIdentity(NationalCode string, password string, CaptchaCode string, verif
 	}
 	siteCookie := strings.Join(cookieStr, "; ")
 	return nil, siteCookie, nil
-	//return body, resCookie, nil
 }
 
 func EncryptAES(password string) (string, error) {
@@ -504,6 +484,7 @@ func SendResetPasswordRequest(siteCookie string, verificationToken string, natio
 	if res.StatusCode == http.StatusFound || res.StatusCode == http.StatusOK {
 		return nil
 	} else {
+		//fmt.Printf("status Code : %v \n", res.StatusCode)
 		return fmt.Errorf("error somthing went wrong")
 	}
 }
@@ -614,7 +595,50 @@ func FindCityID(cityName string, cities []cityStr) (int64, error) {
 	return 0, fmt.Errorf("your city entered is wrong")
 }
 
-func GetChildren(cookie string, verificationToken string) (map[string]string, error) {
+func SetOrphanForSupporter(hashOrphanNationalCode string, hashOrphanId string, NumberOfMonthForSupporting string, monthCount string, verificationToken string, Cookie string) error {
+	// NumberOfMonthForSupporting should be like 100,000
+	// and strMonthlyAmount should be like 100000
+	strMonthlyAmount := strings.Replace(NumberOfMonthForSupporting, ",", "", -1)
+	body := url.Values{
+		"HasheOrphanCodeMelli":       []string{hashOrphanNationalCode},
+		"HasheOrphanId":              []string{hashOrphanId},
+		"StrMonthlyAmount":           []string{NumberOfMonthForSupporting},
+		"MonthlyAmount":              []string{strMonthlyAmount},
+		"MonthCount":                 []string{monthCount},
+		"__RequestVerificationToken": []string{verificationToken},
+		"Niyabat":                    []string{},
+	}
+	req, err := http.NewRequest(http.MethodPost, "https://ekram.emdad.ir/Orphan/AddGroupRelation", bytes.NewBufferString(body.Encode()))
+	if err != nil {
+		return fmt.Errorf("error in set the request for set orphan for supporter, error: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+	req.Header.Set("Cookie", Cookie)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("error in send the request for set orphan for supporter, error: %v", err)
+	}
+	defer res.Body.Close()
+
+	resBody, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("error in get the response body, error: %v", err)
+	}
+	var response map[string]interface{}
+	err = json.Unmarshal(resBody, &response)
+	if err != nil {
+		return fmt.Errorf("error in unmarshal the body, error: %v", err)
+	}
+	successStatus := response["success"].(bool)
+	if successStatus {
+		return nil
+	} else {
+		return fmt.Errorf("response error : %v", response["message"].(string))
+	}
+}
+
+func GetChildren(cookie string, verificationToken string) (map[string]map[string]string, error) {
 	body := url.Values{
 		"mohseninOrphanSearchVM.ProvinceId":                              []string{"17"},
 		"mohseninOrphanSearchVM.SenAz":                                   []string{""},
@@ -633,7 +657,7 @@ func GetChildren(cookie string, verificationToken string) (map[string]string, er
 		"__RequestVerificationToken":                                     []string{verificationToken},
 		"X-Requested-With":                                               []string{"XMLHttpRequests"},
 	}
-	//req, err := http.NewRequest(http.MethodPost, "http://localhost:5001/Orphan", bytes.NewBufferString(body.Encode()))
+
 	req, err := http.NewRequest(http.MethodPost, "https://ekram.emdad.ir/Orphan", bytes.NewBufferString(body.Encode()))
 	if err != nil {
 		return nil, fmt.Errorf("error in set the http request, error: %v", err)
@@ -642,16 +666,11 @@ func GetChildren(cookie string, verificationToken string) (map[string]string, er
 	req.Header.Set("Accept", "*/*")
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
 	req.Header.Set("Cookie", cookie)
+
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error in send the http request, error: %v", err)
 	}
-
-	//defer res.Body.Close()
-	//resbody, err := ioutil.ReadAll(res.Body)
-	//if err != nil {
-	//	return "", err
-	//}
 
 	if res.Body != nil {
 		parsedDoc, err := goquery.NewDocumentFromReader(res.Body)
@@ -663,15 +682,30 @@ func GetChildren(cookie string, verificationToken string) (map[string]string, er
 		//	fmt.Printf("ERrror:%v", err.Error())
 		//	return "", err
 		//}
-		childInfo := make(map[string]string)
+		childInfo := make(map[string]map[string]string)
 		parsedDoc.Find("table#tblOrphansList").Find("tbody").Find("tr").Each(func(i int, row *goquery.Selection) {
-			checkbox := row.Find("input[type=checkbox]")
-			id := strings.TrimSpace(checkbox.AttrOr("value", ""))
+			var id string
+			var value string
+			//checkbox := row.Find("input[type=checkbox]")
+			//id := strings.TrimSpace(checkbox.AttrOr("value", ""))
+			row.Find("td.hashedOrphanId").Each(func(i int, s *goquery.Selection) {
+				id = strings.TrimSpace(s.Text())
+
+				fmt.Println("hashedOrphanId:", s.Text())
+			})
+
+			row.Find("td.hashedOrphanCodeMelli").Each(func(i int, s *goquery.Selection) {
+				value = strings.TrimSpace(s.Text())
+
+				fmt.Println("hashedOrphanCodeMelli:", s.Text())
+			})
 
 			fullName := row.Find("td.fullName").Text()
 			fullName = strings.Replace(fullName, "\n", " ", -1)
 			fullName = strings.TrimSpace(fullName)
-			childInfo[fullName] = id
+			childInfo[fullName] = make(map[string]string)
+			childInfo[fullName]["OrphanId"] = id
+			childInfo[fullName]["OrphanCodeMelli"] = value
 		})
 
 		//fullNameString := strings.Join(fullNames, "\n")
@@ -681,46 +715,6 @@ func GetChildren(cookie string, verificationToken string) (map[string]string, er
 		}
 	}
 	return nil, nil
-}
-
-func ParseChildrenInfo(doc *goquery.Document) (string, error) {
-	//doc, err := html.Parse(htmlCode)
-	//if err != nil {
-	//	return "", fmt.Errorf("Error: %v", err)
-	//}
-
-	// Find the <td> element with class "fullName"
-	//fullName := doc.Find("table#tblOrphansList").Find("tbody").Find("tr").Children().Each(func(i int, s *goquery.Selection) {
-	//	s.Find("input[type=checkbox]").Each(func(i int, selection *goquery.Selection) {
-	//		id := strings.TrimSpace(selection.AttrOr("value", ""))
-	//	})
-	//	fullName := s.Find("td.fullName").Text()
-	//
-	//})
-
-	return "", nil
-	//var fullNames []string
-	//
-	//var findChild func(*html.Node)
-	//findChild = func(node *html.Node) {
-	//	if node.Type == html.ElementNode && node.Data == "tr" {
-	//		for _, attr := range node.Attr {
-	//			if attr.Key == "class" && attr.Val == "fullName" {
-	//				fullNames = append(fullNames, node.FirstChild.Data)
-	//			}
-	//		}
-	//	}
-	//	for c := node.FirstChild; c != nil; c = c.NextSibling {
-	//		findChild(c)
-	//	}
-	//}
-	//
-	//findChild(doc)
-	//if fullNames != nil {
-	//	return fmt.Sprintf("Full Name: %s\n", fullNames), nil
-	//} else {
-	//	return fmt.Sprintln("Full Name not found."), nil
-	//}
 }
 
 func GetListOfMyChildren(cookie string, verificationToken string) error {
@@ -737,7 +731,6 @@ func GetListOfMyChildren(cookie string, verificationToken string) error {
 
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
-	fmt.Println(body)
 
 	doc, err := html.Parse(strings.NewReader(string(body)))
 	if err != nil {
@@ -763,7 +756,7 @@ func GetListOfMyChildren(cookie string, verificationToken string) error {
 
 	listChildren(doc)
 	if fullNames != nil {
-		fmt.Printf("fullName equal to: %v \n", fullNames)
+		//fmt.Printf("fullName equal to: %v \n", fullNames)
 		return nil
 	} else {
 		return fmt.Errorf("error in find the full name class")

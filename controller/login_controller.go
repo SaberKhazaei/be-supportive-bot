@@ -2,9 +2,11 @@ package controller
 
 import (
 	"BeSupporterBot/view"
+	"encoding/json"
 	"fmt"
 	baleAPI "github.com/ghiac/bale-bot-api"
 	"strings"
+	"time"
 )
 
 var JobInfo = map[string]string{
@@ -53,7 +55,7 @@ func (con *Connector) ManageEnterJobTitle(message string, id int64) error {
 		return err
 	}
 
-	resMessage, password, err := SendUserInformation(userInfo.FirstName, userInfo.LastName, userInfo.NationalCode, userInfo.BirthDate, userInfo.PhoneNumber, userInfo.VerificationCode, userInfo.VerificationToken, jobId)
+	resMessage, password, err := SendSupporterInformation(userInfo.FirstName, userInfo.LastName, userInfo.NationalCode, userInfo.BirthDate, userInfo.PhoneNumber, userInfo.VerificationCode, userInfo.VerificationToken, jobId)
 	if resMessage == " عملیات با موفقیت انجام شد" {
 		con.sendNewMessage(id, fmt.Sprintf("پسورد شما : %s \n  ثبت نام با موفقیت ثبت شد", password))
 		err = con.Start(id)
@@ -157,7 +159,7 @@ func (con *Connector) ManageEnterPhoneNumberState(message string, id int64) erro
 		}
 	}
 
-	check, resMessage, err := CheckUserLoginKomiteEmdad(message, verificationToken)
+	check, resMessage, err := CheckUserLoginInKomiteEmdad(message, verificationToken)
 	if err != nil {
 		return err
 	}
@@ -246,11 +248,11 @@ func (con *Connector) ManageEnterNationalCodeLogin(message string, id int64) err
 	if err != nil {
 		return err
 	}
-	err = con.db.UpdateStat(id, "enterLoginPassword")
+	err = view.EnterPassword(con.bot, id)
 	if err != nil {
 		return err
 	}
-	err = view.EnterPassword(con.bot, id)
+	err = con.db.UpdateStat(id, "enterLoginPassword")
 	if err != nil {
 		return err
 	}
@@ -258,16 +260,15 @@ func (con *Connector) ManageEnterNationalCodeLogin(message string, id int64) err
 }
 
 func (con *Connector) ManageEnterLoginPassword(message string, id int64) error {
-	fmt.Printf("send captcha")
 	err := con.db.SetUserPassword(id, message, "enterCaptcha")
 	if err != nil {
 		return err
 	}
-	usr, err := con.db.GetUserInfo(id)
+	siteCookie, _, err := con.db.GetUserSiteCookieAndVerificationToken(id)
 	if err != nil {
 		return err
 	}
-	imageCap, cookie, err := GetCaptcha(usr.SiteCookie)
+	imageCap, cookie, err := GetCaptcha(siteCookie)
 	if err != nil {
 		return err
 	}
@@ -315,8 +316,44 @@ func (con *Connector) ManageEnterCaptcha(message string, id int64) error {
 	}
 	return nil
 }
+
+func (con Connector) CheckLogin(id int64) error {
+	enteredTime, err := con.db.GetEnteredTime(id)
+	if err != nil {
+		return err
+	}
+	if enteredTime == nil {
+		con.sendNewMessage(id, "لطفا در ابتدا فرایند ورود رو طی کنید.")
+		err = view.ListOfTheLoginAndRegisterService(con.bot, id)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("error the first user must login\n")
+	}
+
+	currentTime := time.Now()
+	if currentTime.Year() == enteredTime.Year() && currentTime.Month() == enteredTime.Month() && currentTime.Day() == enteredTime.Day() {
+		dif := currentTime.Sub(*enteredTime)
+		if int64(dif.Hours()) != 0 || dif.Minutes() > 10 {
+			con.sendNewMessage(id, "لطفا در ابتدا فرایند ورود رو طی کنید.")
+			err = view.ListOfTheLoginAndRegisterService(con.bot, id)
+			if err != nil {
+				return err
+			}
+			return fmt.Errorf("error the user with id: %v, it's login token expaiered", id)
+		}
+		return nil
+	} else {
+		con.sendNewMessage(id, "لطفا در ابتدا فرایند ورود رو طی کنید.")
+		err = view.ListOfTheLoginAndRegisterService(con.bot, id)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("error the user with id: %v, it's login token expaiered", id)
+	}
+}
+
 func (con *Connector) ManageEnterNationalCodeReset(message string, id int64) error {
-	fmt.Printf("\n national code: %v \n", message)
 	if len(message) != 10 {
 		con.sendNewMessage(id, "لطفا کد ملی خود رو به درستی وارد نمایید.")
 		return nil
@@ -355,11 +392,11 @@ func (con *Connector) ManageEnterPhoneNumberReset(message string, id int64) erro
 		return err
 	}
 
-	usr, err := con.db.GetUserInfo(id)
+	siteCookie, _, err := con.db.GetUserSiteCookieAndVerificationToken(id)
 	if err != nil {
 		return err
 	}
-	imageCap, cookie, err := GetCaptcha(usr.SiteCookie)
+	imageCap, cookie, err := GetCaptcha(siteCookie)
 	if err != nil {
 		return err
 	}
@@ -380,7 +417,7 @@ func (con *Connector) ManageEnterCaptchaResetState(message string, id int64) err
 		con.sendNewMessage(id, "لطفا کد امنیتی را به درستی وارد نمایید")
 		return nil
 	}
-	err := con.db.SetUserCaptcha(id, message, "login")
+	err := con.db.SetUserCaptcha(id, message, "reset")
 	if err != nil {
 		return err
 	}
@@ -389,7 +426,6 @@ func (con *Connector) ManageEnterCaptchaResetState(message string, id int64) err
 	if err != nil {
 		return err
 	}
-	fmt.Println("TEST4")
 
 	err = SendResetPasswordRequest(userInformation.SiteCookie, userInformation.VerificationToken, userInformation.NationalCode, userInformation.PhoneNumber, userInformation.Captcha, userInformation.JobIdLoginCode)
 	if err != nil {
@@ -403,8 +439,47 @@ func (con *Connector) ManageEnterCaptchaResetState(message string, id int64) err
 	}
 	return nil
 }
+
+func (con *Connector) ManageEnterNumberOfMonthForSupporting(message string, id int64) error {
+	if message == "" {
+		con.sendNewMessage(id, "لطفا تعداد ماه برای حامی شدن فرزند مورد نظر را ارسال نمایید")
+	}
+	numberOfMonth := message
+	userInfo, err := con.db.GetUserInfo(id)
+	if err != nil {
+		return err
+	}
+
+	var orphanInfo map[string]interface{}
+	err = json.Unmarshal(userInfo.CurrentChildInfo, &orphanInfo)
+	if err != nil {
+		return err
+	}
+	orphanInfo["supportingMonth"] = numberOfMonth
+	orphanMarshalled, err := json.Marshal(orphanInfo)
+	if err != nil {
+		return err
+	}
+
+	err = con.db.SetCurrentChildForUser(id, orphanMarshalled)
+	if err != nil {
+		return err
+	}
+	err = SetOrphanForSupporter(orphanInfo["OrphanCodeMelli"].(string), orphanInfo["OrphanId"].(string), numberOfMonth, orphanInfo["AllowancesForOrphans"].(string), userInfo.VerificationToken, userInfo.SiteCookie)
+	if err != nil {
+		con.sendNewMessage(id, "خطایی در ثبت در خواست شما اتفاق افتاده است \n لطفا دوباره تلاش کنید.")
+		return err
+	}
+	con.sendNewMessage(id, "در خواست شما با موفقیت ثبت شد")
+	err = con.db.UpdateStat(id, "login")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (con *Connector) CheckRegister(id int64) error {
-	check, err := con.db.CheckUser(id)
+	check, err := con.db.CheckUserExist(id)
 	if err != nil {
 		return err
 	}
@@ -419,8 +494,8 @@ func (con *Connector) CheckRegister(id int64) error {
 	return nil
 }
 
-func (con *Connector) CheckLogin(id int64) (bool, error) {
-	check, err := con.db.CheckUser(id)
+func (con *Connector) CheckExist(id int64) (bool, error) {
+	check, err := con.db.CheckUserExist(id)
 	if err != nil {
 		return false, err
 	}
@@ -487,6 +562,7 @@ func (con *Connector) SendEnterNationalCode(nationalCode string, id int64) error
 	if err != nil {
 		return err
 	}
+
 	err = view.EnterBirthDate(con.bot, id)
 	if err != nil {
 		return err

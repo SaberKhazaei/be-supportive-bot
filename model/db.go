@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"gorm.io/gorm"
+	"time"
 )
 
 type Database struct {
@@ -17,7 +18,7 @@ func NewDatabase(db *gorm.DB) Database {
 	}
 }
 
-func (db Database) CheckUser(userID int64) (bool, error) {
+func (db Database) CheckUserExist(userID int64) (bool, error) {
 	var check bool
 	err := db.gorm.Raw("SELECT EXISTS(SELECT id FROM bale_bots WHERE id = ?)", userID).Scan(&check).Error
 	if err != nil {
@@ -90,11 +91,24 @@ func (db Database) SetUserPassword(userID int64, password string, newState strin
 }
 
 func (db Database) SetUserCaptcha(userID int64, captcha string, newState string) error {
-	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Updates(map[string]interface{}{"captcha": captcha, "stat": newState}).Error
-	if err != nil {
-		return fmt.Errorf("error in set user password, error: %v", err)
+	model := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID))
+	update := model.Updates(map[string]interface{}{"captcha": captcha, "stat": newState})
+	if newState == "login" {
+		update = model.Update("entered_time", time.Now())
+	}
+	if update.Error != nil {
+		return fmt.Errorf("error in set user password, error: %v", update.Error)
 	}
 	return nil
+}
+
+func (db Database) GetEnteredTime(userID int64) (*time.Time, error) {
+	var userInfo BaleBot
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", userID).Find(&userInfo).Error
+	if err != nil {
+		return nil, fmt.Errorf("error in get user entered time,error: %v", err)
+	}
+	return userInfo.EnteredTime, nil
 }
 
 func (db Database) SetUserSiteCookie(userID int64, cookie string) error {
@@ -202,6 +216,14 @@ func (db Database) GetRepresentedChildForUser(userID int64) ([]byte, error) {
 		return nil, fmt.Errorf("error in get Represented Child, error: %v", err)
 	}
 	return user.RepresentedChild, nil
+}
+
+func (db Database) DeleteRepresentedChildForUser(userID int64) error {
+	err := db.gorm.Model(&BaleBot{}).Where("id = ?", uint(userID)).Delete("represented_child").Error
+	if err != nil {
+		return fmt.Errorf("error in get Represented Child, error: %v", err)
+	}
+	return nil
 }
 
 func (db Database) SetCurrentChildForUser(userID int64, currentChild []byte) error {

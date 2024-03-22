@@ -8,22 +8,13 @@ import (
 func ListOfServices(bot *baleApi.BotAPI, id int64) error {
 	buttons := baleApi.NewInlineKeyboardMarkup(
 		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("ثبت نام", "register"),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("ورود", "login"),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("رمز عبور را فراموش کردم!", "reset"),
+			baleApi.NewInlineKeyboardButtonData("ثبت نام/ورود", "login/register"),
 		),
 		baleApi.NewInlineKeyboardRow(
 			baleApi.NewInlineKeyboardButtonData("سرپرستی فرزند جدید", "newChild"),
 		),
 		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("پرداخت سرانه فرزندان", "pay"),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("مشاهده خیرات من", "history"),
+			baleApi.NewInlineKeyboardButtonData("لیست فرزندان من", "childrenList"),
 		),
 	)
 
@@ -33,6 +24,26 @@ func ListOfServices(bot *baleApi.BotAPI, id int64) error {
 	// Send the message
 	if _, err := bot.Send(message); err != nil {
 		return fmt.Errorf("error in send list of services button with id: %v, error: %v", id, err)
+	}
+	return nil
+}
+
+func ListOfTheLoginAndRegisterService(bot *baleApi.BotAPI, id int64) error {
+	buttons := baleApi.NewInlineKeyboardMarkup(
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("ثبت نام", "register"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("ورود", "login"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("بازیابی رمز عبور", "reset"),
+		),
+	)
+	message := baleApi.NewMessage(id, fmt.Sprintf("شما می توانید با استفاده از 'ثبت نام' در سامانه اکرام یک حساب شخصی بسازید. \n اگر قبلا حساب شخصی خود را ایجاد کرده اید می توانید با استفاده از 'ورود' وارد حساب کاربری خود بشوید.\n در صورتی که رمز حساب کاربری خود را فراموش کرده اید می توانید با استفاده از 'بازیابی رمز عبور' رمز شخصی خود را تعویض کنید."))
+	message.ReplyMarkup = buttons
+	if _, err := bot.Send(message); err != nil {
+		return fmt.Errorf("error in send list of login services button with id: %v, error: %v", id, err)
 	}
 	return nil
 }
@@ -59,12 +70,12 @@ func SendChoseChildButton(buttons []string, bot *baleApi.BotAPI, id int64) error
 		baleApi.NewInlineKeyboardRow(
 			baleApi.NewInlineKeyboardButtonData(buttons[3], fmt.Sprintf("ChoosingChild %v", buttons[3])),
 		),
-		//baleApi.NewInlineKeyboardRow(
-		//	baleApi.NewInlineKeyboardButtonData(buttons[4], fmt.Sprintf("ChoosingChild %v", buttons[4])),
-		//),
-		//baleApi.NewInlineKeyboardRow(
-		//	baleApi.NewInlineKeyboardButtonData(buttons[5], fmt.Sprintf("ChoosingChild %v", buttons[5])),
-		//),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData(buttons[4], fmt.Sprintf("ChoosingChild %v", buttons[4])),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData(buttons[5], fmt.Sprintf("ChoosingChild %v", buttons[5])),
+		),
 		//baleApi.NewInlineKeyboardRow(
 		//	baleApi.NewInlineKeyboardButtonData(buttons[6], fmt.Sprintf("ChoosingChild %v", buttons[6])),
 		//),
@@ -85,52 +96,19 @@ func SendChoseChildPayment(bot *baleApi.BotAPI, id int64) error {
 
 	message.ReplyMarkup = baleApi.NewInlineKeyboardMarkup(
 		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("100000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "100000")),
+			baleApi.NewInlineKeyboardButtonData("۱۰۰۰۰۰ ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "100000")),
 		),
 		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("200000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "200000")),
+			baleApi.NewInlineKeyboardButtonData("۲۰۰۰۰۰ ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "200000")),
 		),
 		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("300000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "300000")),
+			baleApi.NewInlineKeyboardButtonData("۵۰۰۰۰۰ ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "500000")),
 		),
 		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("400000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "400000")),
+			baleApi.NewInlineKeyboardButtonData("۱۰۰۰۰۰۰ ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "1000000")),
 		),
 		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("500000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "500000")),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("600000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "600000")),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("700000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "700000")),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("800000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "800000")),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("900000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "900000")),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("1000000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "1000000")),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("1500000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "1500000")),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("2000000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "2000000")),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("2500000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "2500000")),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("5000000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "5000000")),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("7500000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "7500000")),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData("10000000 ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "10000000")),
+			baleApi.NewInlineKeyboardButtonData("۲۰۰۰۰۰۰ ﷼", fmt.Sprintf("EnteredPriceForChildPay %v", "2000000")),
 		),
 	)
 
