@@ -185,6 +185,67 @@ func (con Connector) ManageCallBacks(data string, id int64) (bool, error) {
 		}
 		return false, nil
 	} else if data == "newChild" {
+		err := view.AskForChoseChildFiltering(con.bot, id)
+		if err != nil {
+			return false, err
+		}
+		return false, nil
+	} else if strings.Contains(data, "state") {
+		stateSplit := strings.Split(data, " ")
+		stateId := strings.TrimSpace(stateSplit[1])
+		siteCookie, _, err := con.db.GetUserSiteCookieAndVerificationToken(id)
+		if err != nil {
+			return false, err
+		}
+
+		citiesOfState, err := GetCityOfState(stateId, siteCookie)
+		if err != nil {
+			return false, err
+		}
+
+		err = view.ChoseCityForChildButton(citiesOfState, con.bot, id)
+		if err != nil {
+			return false, err
+		}
+		return false, nil
+	} else if strings.Contains(data, "city") {
+		citySplit := strings.Split(data, " ")
+		cityId := strings.TrimSpace(citySplit[1])
+		providerId := strings.TrimSpace(citySplit[3])
+		cookie, verificationToken, err := con.db.GetUserSiteCookieAndVerificationToken(id)
+		if err != nil {
+			con.sendNewMessage(id, "خطا در پردازش")
+			return false, err
+		}
+		fullNamesMap, err := GetChildren(cookie, verificationToken, providerId, cityId)
+		if err != nil {
+			con.sendNewMessage(id, "خطا در پردازش")
+			return false, err
+		}
+		var fullNames []string
+		for k, _ := range fullNamesMap {
+			fullNames = append(fullNames, k)
+		}
+
+		fullNamesMapMarshalled, err := json.Marshal(fullNamesMap)
+		if err != nil {
+			return false, err
+		}
+		err = con.db.SetRepresentedChildForUser(id, fullNamesMapMarshalled)
+		if err != nil {
+			return false, err
+		}
+		err = view.SendChoseChildButton(fullNames, con.bot, id)
+		if err != nil {
+			return false, err
+		}
+	} else if data == "choseChildByFilter" {
+		err := view.ChoseStateForChoseChild(con.bot, id)
+		if err != nil {
+			return false, err
+		}
+		return false, nil
+	} else if data == "choseChildByEmdade" {
 		err := con.CheckLogin(id)
 		if err != nil {
 			return false, err
@@ -196,7 +257,7 @@ func (con Connector) ManageCallBacks(data string, id int64) (bool, error) {
 			return false, err
 		}
 
-		fullNamesMap, err := GetChildren(cookie, verificationToken)
+		fullNamesMap, err := GetChildren(cookie, verificationToken, "", "")
 		if err != nil {
 			con.sendNewMessage(id, "خطا در پردازش")
 			return false, err

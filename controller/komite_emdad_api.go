@@ -545,55 +545,42 @@ func GetToken() (string, error) {
 }
 
 // ==========================  chose children ============================
-
-type cityStr struct {
-	CityId       int
-	CityName     string
-	ProviderId   int
-	ProviderName string
-}
-
-func GetCityOfState(stateId string, city string) (string, error) {
-	req, err := http.NewRequest(http.MethodGet, "https://ekram.emdad.ir/CIty/GetByProvinceId", nil)
+func GetCityOfState(stateId string, siteCookie string) ([]map[string]interface{}, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://ekram.emdad.ir/CIty/GetByProvinceId?id=%v", stateId), nil)
 	if err != nil {
-		return "", fmt.Errorf("error in set the request get the city of the stat, error: %v", err)
+		return nil, fmt.Errorf("error in set the request get the city of the stat, error: %v", err)
 	}
-	q := req.URL.Query()
-	q.Add("id", stateId)
+	req.Header.Set("Cookie", siteCookie)
+	req.Header.Set("X-Requested-With", "XMLHttpRequest")
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("error in send the request get the city of the stat, error: %v", err)
+		return nil, fmt.Errorf("error in send the request get the city of the stat, error: %v", err)
 	}
 
 	if res.Body != nil {
-		var response []cityStr
+		var response []map[string]interface{}
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			return "", fmt.Errorf("error in parse the body, error: %v", err)
+			return nil, fmt.Errorf("error in parse the body, error: %v", err)
 		}
 		err = json.Unmarshal(body, &response)
 		if err != nil {
-			return "", fmt.Errorf("error in unmarshal the body, error: %v", err)
+			return nil, fmt.Errorf("error in unmarshal the body, error: %v", err)
 		}
-		cityId, err := FindCityID(city, response)
-		if err != nil {
-			return "", nil
-		}
-		cityIdString := strconv.Itoa(int(cityId))
-		return cityIdString, nil
+		return response, nil
 	}
-	return "", nil
+	return nil, nil
 }
 
-func FindCityID(cityName string, cities []cityStr) (int64, error) {
-	for _, v := range cities {
-		if v.CityName == cityName {
-			return int64(v.CityId), nil
-		}
-	}
-	return 0, fmt.Errorf("your city entered is wrong")
-}
+//func FindCityID(cityName string, cities []cityStr) (int64, error) {
+//	for _, v := range cities {
+//		if v.CityName == cityName {
+//			return int64(v.CityId), nil
+//		}
+//	}
+//	return 0, fmt.Errorf("your city entered is wrong")
+//}
 
 func SetOrphanForSupporter(hashOrphanNationalCode string, hashOrphanId string, NumberOfMonthForSupporting string, monthCount string, verificationToken string, Cookie string) error {
 	// NumberOfMonthForSupporting should be like 100,000
@@ -638,15 +625,20 @@ func SetOrphanForSupporter(hashOrphanNationalCode string, hashOrphanId string, N
 	}
 }
 
-func GetChildren(cookie string, verificationToken string) (map[string]map[string]string, error) {
+func GetChildren(cookie string, verificationToken string, provinceId string, cityId string) (map[string]map[string]string, error) {
+	if provinceId == "" {
+		provinceId = "-1"
+		cityId = "-1"
+	}
+
 	body := url.Values{
-		"mohseninOrphanSearchVM.ProvinceId":                              []string{"17"},
+		"mohseninOrphanSearchVM.ProvinceId":                              []string{provinceId},
 		"mohseninOrphanSearchVM.SenAz":                                   []string{""},
 		"mohseninOrphanSearchVM.SenTa":                                   []string{""},
 		"mohseninOrphanSearchVM.BirthDate":                               []string{""},
 		"mohseninOrphanSearchVM.OrphanSearchForRelationSearchFirstName":  []string{""},
 		"mohseninOrphanSearchVM.MemberShipCode":                          []string{""},
-		"mohseninOrphanSearchVM.CityId":                                  []string{"882"},
+		"mohseninOrphanSearchVM.CityId":                                  []string{cityId},
 		"mohseninOrphanSearchVM.OrphanSearchForRelationSearchBranchCode": []string{"-1"},
 		"mohseninOrphanSearchVM.OrphanSearchForRelationGender":           []string{"-1"},
 		"mohseninOrphanSearchVM.Action":                                  []string{"AddToList"},
@@ -690,14 +682,10 @@ func GetChildren(cookie string, verificationToken string) (map[string]map[string
 			//id := strings.TrimSpace(checkbox.AttrOr("value", ""))
 			row.Find("td.hashedOrphanId").Each(func(i int, s *goquery.Selection) {
 				id = strings.TrimSpace(s.Text())
-
-				fmt.Println("hashedOrphanId:", s.Text())
 			})
 
 			row.Find("td.hashedOrphanCodeMelli").Each(func(i int, s *goquery.Selection) {
 				value = strings.TrimSpace(s.Text())
-
-				fmt.Println("hashedOrphanCodeMelli:", s.Text())
 			})
 
 			fullName := row.Find("td.fullName").Text()

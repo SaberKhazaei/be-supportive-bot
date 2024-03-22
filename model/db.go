@@ -12,7 +12,6 @@ type Database struct {
 
 func NewDatabase(db *gorm.DB) Database {
 	db.AutoMigrate(&BaleBot{})
-
 	return Database{
 		gorm: db,
 	}

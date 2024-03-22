@@ -48,45 +48,157 @@ func ListOfTheLoginAndRegisterService(bot *baleApi.BotAPI, id int64) error {
 	return nil
 }
 
-func SendChoseChildButton(buttons []string, bot *baleApi.BotAPI, id int64) error {
-	message := baleApi.NewMessage(id, "گزینش فرزندان برای حامی شدن:")
-	//rows := baleApi.NewInlineKeyboardMarkup()
-	//for i := 0; i < len(buttons); i++ {
-	//	newRow := baleApi.NewInlineKeyboardRow(
-	//		baleApi.NewInlineKeyboardButtonData(buttons[i], fmt.Sprintf("ChoosingChild %v", buttons[0])),
-	//	)
-	//	rows.InlineKeyboard[i] = newRow
-	//}
+func AskForChoseChildFiltering(bot *baleApi.BotAPI, id int64) error {
+	text := "نیکوکار گرامی، این سامانه بر‌اساس اصل رعایت عدالت در توزیع مساعدت‌های حامیان بین فرزندان نیازمند طراحی شده‌است. \n لذا در نمایش فرزندان همواره اسامی بالای فهرست، محرومیت بیشتری نسبت به سطرهای بعدی خواهند داشت.\n چنانچه شما فیلتر را به انتخاب امداد تعیین نموده ، محرومترین و نیازمندترین فرزندان در سراسر کشور به شما نمایش داده خواهد شد.\n \n در صورتی که تمایل دارید فیلتر مورد نظر را اعمال کنید گزینه فیلتر را انتخاب نمایید در غیر اینصورت گزینه به انتخاب امداد را انتخاب نمایید."
+	message := baleApi.NewMessage(id, text)
 	message.ReplyMarkup = baleApi.NewInlineKeyboardMarkup(
 		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData(buttons[0], fmt.Sprintf("ChoosingChild %v", buttons[0])),
+			baleApi.NewInlineKeyboardButtonData("فیلتر", "choseChildByFilter"),
 		),
 		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData(buttons[1], fmt.Sprintf("ChoosingChild %v", buttons[1])),
+			baleApi.NewInlineKeyboardButtonData("به انتخاب امداد", "choseChildByEmdade"),
 		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData(buttons[2], fmt.Sprintf("ChoosingChild %v", buttons[2])),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData(buttons[3], fmt.Sprintf("ChoosingChild %v", buttons[3])),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData(buttons[4], fmt.Sprintf("ChoosingChild %v", buttons[4])),
-		),
-		baleApi.NewInlineKeyboardRow(
-			baleApi.NewInlineKeyboardButtonData(buttons[5], fmt.Sprintf("ChoosingChild %v", buttons[5])),
-		),
-		//baleApi.NewInlineKeyboardRow(
-		//	baleApi.NewInlineKeyboardButtonData(buttons[6], fmt.Sprintf("ChoosingChild %v", buttons[6])),
-		//),
-		//baleApi.NewInlineKeyboardRow(
-		//	baleApi.NewInlineKeyboardButtonData(buttons[7], fmt.Sprintf("ChoosingChild %v", buttons[7])),
-		//),
 	)
+	if _, err := bot.Send(message); err != nil {
+		return fmt.Errorf("error in send ask for chose child filtering button with id: %v, error: %v", id, err)
+	}
+	return nil
+}
 
+func ChoseStateForChoseChild(bot *baleApi.BotAPI, id int64) error {
+	message := baleApi.NewMessage(id, "استان مورد نظر را انتخاب نمایید:")
+	message.ReplyMarkup = baleApi.NewInlineKeyboardMarkup(
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("آ‌ذربایجان شرقی", "state 10"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("آ‌ذربایجان غربی", "state 11"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("اردبیل", "state 34"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("اصفهان", "state 12"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("البرز", "state 36"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("ایلام", "state 13"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("بوشهر", "state 15"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("تهران", "state 16"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("چهارمحال وبختیاری", "state 19"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("خراسان جنوبی", "state 39"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("خراسان رضوی", "state 17"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("خراسان شمالی", "state 40"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("خوزستان", "state 18"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("زنجان", "state 20"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("سمنان", "state 21"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("سیستان وبلوچستان", "state 22"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("فارس", "state 23"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("قم", "state 37"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("کردستان", "state 24"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("کرمان", "state 25"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("کرمانشاه", "state 14"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("کهگیلویه بویراحمد", "state 26"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("گلستان", "state 38"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("گیلان", "state 27"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("لرستان", "state 28"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("مازندران", "state 29"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("مرکزی", "state 30"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("هرمزگان", "state 31"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("همدان", "state 32"),
+		),
+		baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData("یزد", "state 33"),
+		),
+	)
+	if _, err := bot.Send(message); err != nil {
+		return fmt.Errorf("error in send list of the states button with id: %v, error: %v", id, err)
+	}
+	return nil
+}
+
+func ChoseCityForChildButton(cities []map[string]interface{}, bot *baleApi.BotAPI, id int64) error {
+	message := baleApi.NewMessage(id, "شهر مورد نظر را انتخاب نمایید:")
+
+	var rows [][]baleApi.InlineKeyboardButton
+	for _, city := range cities {
+		row := baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData(city["CityName"].(string), fmt.Sprintf("city %v providerId: %v ", city["CityId"].(float64), city["ProvinceId"].(float64))),
+		)
+		rows = append(rows, row)
+	}
+
+	message.ReplyMarkup = baleApi.NewInlineKeyboardMarkup(rows...)
 	// Send the message
 	if _, err := bot.Send(message); err != nil {
-		return fmt.Errorf("error in send list of services button with id: %v, error: %v", id, err)
+		return fmt.Errorf("error in send list of cities button with id: %v, error: %v", id, err)
+	}
+	return nil
+}
+
+func SendChoseChildButton(fullNames []string, bot *baleApi.BotAPI, id int64) error {
+	message := baleApi.NewMessage(id, "گزینش فرزندان برای حامی شدن:")
+
+	var rows [][]baleApi.InlineKeyboardButton
+	for _, fullName := range fullNames {
+		row := baleApi.NewInlineKeyboardRow(
+			baleApi.NewInlineKeyboardButtonData(fullName, fmt.Sprintf("ChoosingChild %v", fullName)),
+		)
+		rows = append(rows, row)
+	}
+
+	message.ReplyMarkup = baleApi.NewInlineKeyboardMarkup(rows...)
+	// Send the message
+	if _, err := bot.Send(message); err != nil {
+		return fmt.Errorf("error in send list childrens for chosing button with id: %v, error: %v", id, err)
 	}
 	return nil
 }
